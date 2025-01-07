@@ -1,0 +1,85 @@
+<!-- templates/chat.html -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Tutor</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/styles.css') }}"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;500&family=Oswald:wght@500&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <header class="header">
+      <img
+        src="{{ url_for('static', filename='images/image.png') }}"
+        alt="Logo"
+        class="logo"
+      />
+      <h1>Custom GPT Chatbot</h1>
+    </header>
+
+    <main class="chat-area">
+      <div class="chat-box" id="chat-box">
+        <!-- Initial AI message -->
+        <div class="ai-message">
+          <p>Welcome! How can I assist you today?</p>
+        </div>
+      </div>
+      <div class="input-area">
+        <textarea
+          id="user-input"
+          placeholder="Type your message here..."
+        ></textarea>
+        <button id="send-button">Send</button>
+      </div>
+    </main>
+
+    <script>
+      document
+        .getElementById("send-button")
+        .addEventListener("click", function () {
+          const userInput = document.getElementById("user-input");
+          const message = userInput.value;
+
+          if (message.trim() === "") {
+            return; // Do not send empty messages
+          }
+
+          // Append user's message
+          const chatBox = document.getElementById("chat-box");
+          chatBox.innerHTML += `<div class="user-message"><p>${message}</p></div>`;
+          userInput.value = "";
+
+          // Send the message to the server
+          fetch("/api/chat", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ message }),
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              if (data.response) {
+                chatBox.innerHTML += `<div class="ai-message">${data.response}</div>`;
+              } else {
+                chatBox.innerHTML += `<div class="error-message"><p>Error: ${data.error}</p></div>`;
+              }
+              chatBox.scrollTop = chatBox.scrollHeight;
+            })
+            .catch((error) => {
+              console.error("Error:", error);
+              chatBox.innerHTML += `<div class="error-message"><p>Error communicating with the server.</p></div>`;
+            });
+        });
+    </script>
+  </body>
+</html>
